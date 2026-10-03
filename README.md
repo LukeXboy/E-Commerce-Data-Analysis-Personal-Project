@@ -1,4 +1,5 @@
 # E-Commerce Data Analysis Personal Project
+Liu Xing (Luke)
 
 ## Project Overview
 
