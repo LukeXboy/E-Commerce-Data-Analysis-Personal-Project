@@ -78,7 +78,9 @@ Order-level analytical dataset
         ↓
 SQL + Python business analysis
         ↓
-Customer / revenue / product analysis
+Revenue-driver decomposition
+        ↓
+Customer / product / geographic analysis
         ↓
 Statistical analysis
         ↓
@@ -217,49 +219,166 @@ These are descriptive observations only; further analysis is required before ass
 
 ---
 
-## Next Analysis: Revenue Growth Decomposition
+## 5. October → November 2017 Revenue Growth Decomposition
 
-One of the next investigations is the large increase in revenue from **October 2017 to November 2017**.
+A major investigation focused on the sharp increase in delivered-order revenue from **October 2017 to November 2017**.
 
-The first-level decomposition will use:
+The decomposition used:
 
 ```text
 Revenue
 ≈
-Customers
+Unique Customers
 ×
 Orders per Customer
 ×
 Average Order Value
 ```
 
-The analysis will then investigate whether the increase is associated with:
+### KPI Comparison
 
-- Customer volume
-- Order frequency
-- Average order value
-- Product/category mix
-- Item prices
-- Basket size
-- Freight
-- Seller mix
-- Geography
+| Metric | Oct 2017 | Nov 2017 | Approx. Change |
+|---|---:|---:|---:|
+| Revenue | BRL 751,140 | BRL 1,153,528 | **+53.6%** |
+| Unique customers | 4,417 | 7,183 | **+62.6%** |
+| Orders | 4,478 | 7,289 | **+62.8%** |
+| Orders per customer | 1.014 | 1.015 | **~flat** |
+| Average order value | BRL 167.74 | BRL 158.26 | **-5.7%** |
 
-This decomposition is intended to distinguish **what changed** from **why it changed**.
+### Main Finding
+
+> **The November revenue surge was primarily volume-driven.**
+
+Revenue increased because many more customers placed many more orders. It was **not** driven by higher purchase frequency or higher order value:
+
+- orders per customer remained nearly unchanged
+- AOV declined
+- item-level analysis also showed lower average item prices and no meaningful increase in basket size
+
+The same October–November decomposition was reproduced in **SQL** to validate the business metrics independently from the Pandas workflow.
 
 ---
 
+## 6. Product-Category Contribution Analysis
+
+To understand whether one product area explained the November increase, order-item data was joined with products and category translations.
+
+The analysis used a `month × product category` grain and compared **absolute item-revenue change** rather than percentage growth alone.
+
+### Largest Category-Level Increases
+
+| Product category | Oct item revenue | Nov item revenue | Increase |
+|---|---:|---:|---:|
+| `bed_bath_table` | 46,007.70 | 87,957.63 | **+41,949.93** |
+| `health_beauty` | 40,698.99 | 78,274.40 | **+37,575.41** |
+| `furniture_decor` | 30,009.74 | 62,091.27 | **+32,081.53** |
+| `watches_gifts` | 64,874.63 | 95,292.34 | **+30,417.71** |
+| `toys` | 33,324.42 | 62,611.26 | **+29,286.84** |
+| `computers_accessories` | 42,009.38 | 69,676.32 | **+27,666.94** |
+
+### Interpretation
+
+The November increase was **broad-based across multiple major product categories** rather than being explained by a single category.
+
+`bed_bath_table` was the largest observed category contributor, but this is treated as a **descriptive contribution**, not proof that the category caused the surge.
+
+---
+
+## 7. Geographic Contribution Analysis
+
+Revenue was compared across Brazilian customer states using the **order-level table** so that order revenue was not duplicated across multiple item rows.
+
+### Largest State-Level Revenue Increases
+
+| State | Oct revenue | Nov revenue | Increase |
+|---|---:|---:|---:|
+| SP | 249,924.09 | 401,027.72 | **+151,103.63** |
+| RJ | 110,577.92 | 172,234.57 | **+61,656.65** |
+| MG | 93,049.17 | 154,131.98 | **+61,082.81** |
+| RS | 43,173.06 | 67,262.74 | **+24,089.68** |
+| SC | 24,773.77 | 44,269.59 | **+19,495.82** |
+| PR | 37,404.60 | 54,237.96 | **+16,833.36** |
+
+The top three states — **SP, RJ, and MG** — contributed roughly **68% of the total October-to-November revenue increase**.
+
+### Interpretation
+
+> The November surge was not evenly distributed geographically. A large share of the increase came from Brazil's major customer markets, especially São Paulo, Rio de Janeiro, and Minas Gerais.
+
+---
+
+## 8. New vs Returning Customer Analysis
+
+The next step was to determine whether the volume increase in major states was driven by existing customers or by new customer inflow.
+
+A customer was classified as:
+
+- **New** — no delivered order before November 2017 in the observed dataset
+- **Returning** — at least one delivered order before November 2017
+
+> "New" therefore means **new within the observed Olist history**, not necessarily first-time customer ever outside the dataset.
+
+### November 2017 Customer Mix
+
+| State | New customers | Returning customers | New customer % |
+|---|---:|---:|---:|
+| MG | 893 | 21 | **97.7%** |
+| RJ | 979 | 17 | **98.3%** |
+| RS | 399 | 6 | **98.5%** |
+| SP | 2,803 | 41 | **98.6%** |
+
+### Main Finding
+
+> **The November volume surge in these major states was overwhelmingly associated with customers who had no prior delivered order in the observed dataset.**
+
+This strengthens the overall growth story:
+
+```text
+November revenue surge
+→ many more customers
+→ many more orders
+→ order frequency ~flat
+→ AOV lower
+→ broad category growth
+→ concentrated in major states
+→ ~98% of Nov customers in selected states classified as new within observed history
+```
+
+The evidence therefore points toward **new-customer inflow / acquisition** as the main descriptive driver of November's growth, rather than higher spending by existing customers.
+
+---
+
+## Next Analysis
+
+The next stage will investigate **what the November new customers purchased**.
+
+Planned questions include:
+
+- Which product categories attracted the most November new customers?
+- Which individual products were most common among newly acquired customers?
+- Was new-customer demand concentrated in a small number of categories or broadly distributed?
+- Did new and returning customers have different AOV, category mix, review scores, or geographic patterns?
+- Did the November new-customer cohort return in later months?
+
+This will move the project from **"Where did growth come from?"** to **"What characterized the customers and products associated with that growth?"**
+
+---
+
+# Planned Analysis
 # Planned Analysis
 
 The remaining project will expand into the following areas.
 
 ## SQL Analysis
 
-Planned SQL work includes:
+Completed / in progress:
 
 - Monthly KPI extraction
-- Customer-level revenue analysis
-- Top customers by market / segment
+- October–November revenue decomposition
+- Customer-level and business KPI validation
+
+Planned:
+
 - Customer retention
 - Repeat-purchase behavior
 - Product/category performance
@@ -272,21 +391,28 @@ Planned SQL work includes:
 
 ## Python / Pandas Analysis
 
-Planned Python analysis includes:
+Completed / in progress:
 
-- Exploratory data analysis
+- Data-quality audit
+- Order-level dataset construction
+- Monthly KPI analysis
 - Revenue-driver decomposition
-- Customer behavior analysis
-- Product/category mix
-- Delivery performance
+- Product-category contribution analysis
+- Geographic contribution analysis
+- New vs returning customer analysis
+
+Planned:
+
+- New-customer product/category analysis
+- Customer retention and cohort analysis
+- Delivery-performance analysis
 - Review-score drivers
-- Cohort and retention analysis
 - Outlier analysis
 - Feature engineering
 
 ---
 
-## Statistical Analysis
+## Statistical Analysis## Statistical Analysis
 
 The project will include statistical methods where they answer a meaningful business question, such as:
 
@@ -419,10 +545,13 @@ pip install -r requirements.txt
 Throughout the project, several principles are followed:
 
 - Define the **grain** before joining tables
+- Match each metric to the correct grain before aggregating
 - Validate row counts and keys after every important join
+- Use `customer_id` for order-to-customer joins and `customer_unique_id` for customer-history analysis
 - Investigate missing values before imputing or deleting them
-- Separate descriptive patterns from causal conclusions
+- Separate descriptive contribution from causal conclusions
 - Check denominators before interpreting averages or rates
+- Distinguish absolute contribution from percentage growth
 - Distinguish statistical significance from practical business significance
 - Translate analytical findings into business recommendations
 - Document assumptions and data-quality decisions
@@ -436,23 +565,26 @@ Throughout the project, several principles are followed:
 Current milestone:
 
 ```text
-Data understanding        ✅
-Data quality audit        ✅
-Order-level dataset       ✅
-Review integration        ✅
-Monthly KPI table         ✅
-Revenue decomposition     🔄
-SQL business analysis     ⏳
-Customer analysis         ⏳
-Statistical analysis      ⏳
-Data science modeling     ⏳
-Dashboard                 ⏳
-Executive report          ⏳
+Data understanding             ✅
+Data quality audit             ✅
+Order-level dataset            ✅
+Review integration             ✅
+Monthly KPI table              ✅
+Revenue decomposition          ✅
+Product-category analysis      ✅
+Geographic analysis            ✅
+New vs returning analysis      ✅
+SQL business analysis          🔄
+Customer / cohort analysis     🔄
+Statistical analysis           ⏳
+Data science modeling          ⏳
+Dashboard                      ⏳
+Executive report               ⏳
 ```
 
 ---
 
-## Author
+## Author## Author
 
 **Xing Liu (Luke)**  
 Master of Engineering — Data Analytics & Machine Learning  
