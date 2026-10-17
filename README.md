@@ -348,23 +348,105 @@ The evidence therefore points toward **new-customer inflow / acquisition** as th
 
 ---
 
-## Next Analysis
+## 9. Day 18 — New-Customer Category Analysis
 
-The next stage will investigate **what the November new customers purchased**.
+The next investigation examines the product categories purchased by **November 2017 new customers** in **SP, RJ, MG, and RS**.
 
-Planned questions include:
+The population is limited to delivered orders. A "new" customer has no earlier delivered order in the available Olist history; this does **not** establish that they had never purchased on the marketplace outside the observed dataset.
 
-- Which product categories attracted the most November new customers?
-- Which individual products were most common among newly acquired customers?
-- Was new-customer demand concentrated in a small number of categories or broadly distributed?
-- Did new and returning customers have different AOV, category mix, review scores, or geographic patterns?
-- Did the November new-customer cohort return in later months?
+### Data-grain validation
 
-This will move the project from **"Where did growth come from?"** to **"What characterized the customers and products associated with that growth?"**
+- Starting November four-state dataset: **5,242 rows = 5,242 distinct orders** (one row per order, including new and returning buyers).
+- After filtering to November new buyers and joining item/product/category records: **5,982 item-level rows**.
+- Distinct November new customers across the four states: **5,074**.
+- Item-level rows were used for item and category analysis; **order-level rows** were used when summing order revenue.
+
+### Categories with the widest reach among new customers
+
+| Category | Distinct new customers | Orders | Items sold | Item revenue (BRL) |
+|---|---:|---:|---:|---:|
+| `bed_bath_table` | 610 | 621 | 735 | 68,343.26 |
+| `furniture_decor` | 388 | 395 | 555 | 43,879.82 |
+| `sports_leisure` | 366 | 376 | 412 | 44,080.30 |
+| `health_beauty` | 336 | 340 | 373 | 51,087.67 |
+| `toys` | 335 | 336 | 375 | 46,704.16 |
+
+**Important:** Customers can appear in multiple category-specific counts. Summing distinct-customer counts across categories would double-count cross-category purchasers.
+
+### Overlap-adjusted top-five reach
+
+Customers who purchased **at least one item** in any of these five categories were counted **once**, irrespective of how many categories they bought from.
+
+| Metric | October 2017 | November 2017 |
+|---|---:|---:|
+| Total new customers (selected four states) | 3,052 | 5,074 |
+| New customers who bought from any top-five category | 1,176 | 2,025 |
+| Top-five customer reach | **38.53%** | **39.91%** |
+
+- New customers grew by approximately **66.3%**.
+- New customers purchasing from any of the selected top-five categories grew by approximately **72.2%**.
+- Top-five reach rose by approximately **1.38 percentage points**.
+
+The same five categories were used for both months. October customers were classified against **all available delivered-order history before October 1**, and November customers against history before November 1.
+
+**Interpretation:** These five categories gained a modest share of new-customer purchases, while the influx remained broad-based. Popularity and reach are **associations**, not evidence that the categories *caused* acquisition or that increasing marketing spend would be profitable.
+
+The November reach calculation was also reproduced as a **SQL conditional distinct-count query**, using `COUNT(DISTINCT CASE WHEN ... THEN customer_unique_id END)` and a zero-safe denominator.
 
 ---
 
-# Planned Analysis
+## 10. Day 18 — Customer Segmentation and AOV Comparison
+
+For November new customers, two **mutually exclusive, exhaustive** segments were defined:
+
+- **Top-five buyer:** purchased at least one item in any of the five selected categories.
+- **Other buyer:** did not purchase an item in those categories.
+
+A customer purchasing both top-five and non-top-five products is assigned to **Top-five buyer**, only once.
+
+Customer segmentation was deduplicated to **one row per `customer_unique_id`**:
+
+| Segment | Distinct customers |
+|---|---:|
+| Top-five buyer | 2,025 |
+| Other buyer | 3,049 |
+| **Total** | **5,074** |
+
+To calculate order-level KPIs, these customer labels were joined back to the **one-row-per-order** dataset; complete order revenue was assigned to the customer's segment instead of summing repeated payments on item-level rows.
+
+### November new-customer segment performance
+
+| Metric | Top-five buyers | Other buyers |
+|---|---:|---:|
+| Distinct customers | 2,025 | 3,049 |
+| Distinct orders | 2,080 | 3,073 |
+| Total order revenue (BRL) | 299,439.32 | 484,474.40 |
+| Average order value (BRL) | **143.96** | **157.66** |
+
+Top-five buyers had an AOV approximately **BRL 13.69 (8.69%) lower** than other buyers.
+
+**Interpretation:** AOV reflects observed revenue per order, **not customer profitability or lifetime value**. The Olist data does not provide complete acquisition spend, manufacturing costs, or actual logistics expense; recorded freight amounts are not interchangeable with fulfillment cost. The observed AOV difference alone is not sufficient to recommend reducing marketing for the top-five categories.
+
+For a robust reproduction, the customer-to-order merge should be validated with `validate='many_to_one'`, no increase in order rows, and no missing segment labels. Missing or untranslated product categories should also be audited rather than automatically interpreted as purchases outside the top five.
+
+---
+
+## Next Analysis — 90-Day Repeat-Purchase Retention
+
+**Not yet completed.** The next step is to measure whether November's top-five buyers are more likely to make another delivered purchase than other buyers.
+
+Planned approach:
+
+1. Start with the full **order-level delivered-order history**, not November data alone.
+2. Identify each cohort customer's first delivered order, using `customer_unique_id` and purchase timestamp; confirm the cohort's first purchase occurred in November 2017.
+3. Identify a later **distinct delivered order** from the same customer within **90 days** of their first purchase.
+4. Compare **unique customers retained / unique customers in cohort** for top-five buyers and other buyers.
+5. Examine sample size, differences in retention, and appropriate statistical uncertainty before drawing conclusions.
+
+This analysis will add **repeat-purchase behavior** to the existing customer-acquisition and AOV findings, helping evaluate potential long-term value without claiming it directly measures profitability.
+
+---
+
 # Planned Analysis
 
 The remaining project will expand into the following areas.
@@ -376,6 +458,7 @@ Completed / in progress:
 - Monthly KPI extraction
 - October–November revenue decomposition
 - Customer-level and business KPI validation
+- Conditional distinct-count SQL for overlap-adjusted top-five customer reach
 
 Planned:
 
@@ -403,8 +486,9 @@ Completed / in progress:
 
 Planned:
 
-- New-customer product/category analysis
-- Customer retention and cohort analysis
+- New-customer product/category analysis (completed for the top-five categories)
+- Customer segmentation and AOV comparison (completed)
+- Customer retention and cohort analysis (next)
 - Delivery-performance analysis
 - Review-score drivers
 - Outlier analysis
@@ -412,7 +496,7 @@ Planned:
 
 ---
 
-## Statistical Analysis## Statistical Analysis
+## Statistical Analysis
 
 The project will include statistical methods where they answer a meaningful business question, such as:
 
@@ -574,7 +658,10 @@ Revenue decomposition          ✅
 Product-category analysis      ✅
 Geographic analysis            ✅
 New vs returning analysis      ✅
+New-customer category reach    ✅
+Customer segment AOV           ✅
 SQL business analysis          🔄
+90-day repeat retention        ⏳
 Customer / cohort analysis     🔄
 Statistical analysis           ⏳
 Data science modeling          ⏳
@@ -584,7 +671,7 @@ Executive report               ⏳
 
 ---
 
-## Author## Author
+## Author
 
 **Xing Liu (Luke)**  
 Master of Engineering — Data Analytics & Machine Learning  
