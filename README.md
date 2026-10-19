@@ -1,369 +1,162 @@
-# E-Commerce Data Analysis Personal Project
-Liu Xing (Luke)
+# E-Commerce Revenue & Customer Behavior Analysis
 
-## Project Overview
+**Independent data analytics portfolio project | October 2026**  
+**Tools:** Python, Pandas, SQL, exploratory data analysis, KPI decomposition, customer segmentation  
+**Dataset:** [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
 
-This project analyzes the **Brazilian Olist E-Commerce Dataset** to understand how an online marketplace can improve **sustainable revenue growth while maintaining a strong customer experience**.
+## Overview
 
-The project is designed as an end-to-end data analytics portfolio project combining:
+This completed **exploratory and business analytics case study** investigates revenue growth and customer purchasing behavior in a Brazilian e-commerce marketplace. It connects data-quality work, relational data modeling, SQL/Python analysis, and business interpretation to answer:
 
-- **Python / Pandas** for data cleaning, validation, exploratory analysis, feature engineering, and statistical analysis
-- **SQL** for relational analysis, KPI extraction, customer analysis, and business queries
-- **Power BI / Tableau** for executive dashboarding and visualization
-- **Statistics / Data Science** for deeper investigation of customer behavior and business performance
-- **Business analytics** for KPI decomposition, root-cause analysis, and actionable recommendations
-- **GitHub documentation** to present the full analytical workflow in a reproducible and recruiter-friendly format
+> **What drove the marketplace's October-to-November 2017 revenue increase, and what did newly observed customers buy?**
 
-The central business question is:
+**Scope:** Data validation, order-level dataset construction, revenue decomposition, geographic and product-category contributions, new-versus-returning customer classification, category reach, and customer-segment AOV analysis.
 
-> **How can an e-commerce marketplace improve sustainable revenue while protecting customer experience?**
+**Not in scope:** A Power BI/Tableau dashboard, 90-day repeat-purchase retention, causal campaign attribution, hypothesis testing, or predictive machine learning. These were considered but **were not completed and are not claimed as deliverables**.
+
+The project author is organizing and uploading the original analysis notebook separately. This README documents the completed analytical findings and assumptions, but does not imply that a runnable notebook is already present in the repository.
 
 ---
 
-## Business Objectives
+## Executive Summary
 
-The analysis will focus on questions such as:
-
-1. How are revenue, customers, orders, and average order value changing over time?
-2. Is revenue growth primarily driven by customer growth, purchase frequency, or higher order value?
-3. Which product categories, sellers, or customer segments contribute most to growth?
-4. What factors are associated with lower review scores or poor customer experience?
-5. How do delivery performance and order fulfillment relate to customer satisfaction?
-6. Which customers are most valuable, and how strong is repeat-purchase behavior?
-7. Are there statistically meaningful differences across customer or order groups?
-8. What business actions could improve growth without damaging customer experience?
-
----
-
-## Dataset
-
-This project uses the **Brazilian E-Commerce Public Dataset by Olist**.
-
-The dataset contains multiple relational tables, including:
-
-- Orders
-- Customers
-- Order items
-- Payments
-- Reviews
-- Products
-- Sellers
-- Geolocation
-- Product category translations
-
-Raw data files are not stored in this repository.
-
-### Key analytical identifiers
-
-- `order_id` — unique order identifier
-- `customer_id` — order-level customer identifier
-- `customer_unique_id` — persistent customer identifier used for customer-level analysis
-
-A key design decision in this project is to preserve the analytical grain:
-
-> **One row = one order**
-
-One-to-many tables such as payments and reviews are aggregated to the order level before joining.
-
----
-
-## Project Workflow
-
-```text
-Raw relational data
-        ↓
-Data quality audit
-        ↓
-Order-level analytical dataset
-        ↓
-SQL + Python business analysis
-        ↓
-Revenue-driver decomposition
-        ↓
-Customer / product / geographic analysis
-        ↓
-Statistical analysis
-        ↓
-Data science modeling
-        ↓
-Power BI / Tableau dashboard
-        ↓
-Executive recommendations
-```
-
----
-
-# Current Progress
-
-## 1. Data Quality Audit
-
-The first stage of the project focused on validating whether the order data could be trusted for analysis.
-
-Checks completed include:
-
-- Row and column counts
-- Data types
-- Missing values
-- Duplicate `order_id` values
-- Order-status distribution
-- Purchase-date range
-- Missing delivery timestamps by order status
-- Invalid order-lifecycle timestamp sequences
-- Join integrity across tables
-
-### Key findings
-
-- **99,441 order records**
-- **99,441 unique `order_id` values**
-- **0 duplicated order IDs**
-- Most missing customer-delivery timestamps are associated with non-delivered orders
-- **8 orders** are marked as `delivered` while missing a customer-delivery timestamp
-- **23 orders** contain an invalid delivery sequence where the recorded customer-delivery timestamp occurs before the carrier handoff timestamp
-
-These anomalous records are retained for analyses unrelated to delivery duration, but they should be flagged or excluded when calculating logistics-related metrics.
-
----
-
-## 2. Order-Level Analytical Dataset
-
-The `orders` table is used as the base population.
-
-### Payments
-
-Because an order may contain multiple payment records, payments are first aggregated to one row per order:
-
-```text
-order_id
-→ SUM(payment_value)
-→ order_revenue
-```
-
-The aggregated payment table is then left-joined to the orders table.
-
-### Customers
-
-Customer information is joined using:
-
-```text
-orders.customer_id = customers.customer_id
-```
-
-`customer_unique_id` is used for unique-customer and repeat-purchase analysis.
-
-### Join validation
-
-After joining orders, payments, and customers:
-
-- **99,441 rows**
-- **99,441 unique orders**
-- **0 duplicated order IDs**
-- **0 missing customer_unique_id values**
-- **1 missing payment value**
-
-The missing payment belonged to a delivered order with valid item-level records. For this project, its revenue was reconstructed as **BRL 143.46** using item price plus freight. This value is documented as an imputation rather than an observed payment value.
-
----
-
-## 3. Review Integration
-
-Reviews are aggregated to the order level using:
-
-- Average review score
-- Review count
-
-The aggregated review table is left-joined to the order-level analytical dataset.
-
-After the join:
-
-- **99,441 rows preserved**
-- **0 duplicated order IDs**
-- **768 orders with no review score**
-
-Missing reviews are kept as `NaN` instead of being filled with zero, because a missing review means no review was observed rather than a negative rating.
-
-Missing-review rates are also analyzed by order status to distinguish expected missingness from potential data-quality issues.
-
----
-
-## 4. Monthly Executive KPI Table
-
-The primary executive KPI population is defined as:
-
-> **Delivered orders only**
-
-This provides a consistent view of fulfilled business activity.
-
-The monthly KPI table contains:
-
-| KPI | Definition |
+| Finding | Result |
 |---|---|
-| Revenue | Sum of order revenue from delivered orders |
-| Unique Customers | Distinct `customer_unique_id` |
-| Orders | Distinct delivered `order_id` |
-| Average Order Value | Revenue / Orders |
-| Average Review Score | Mean order-level review score |
+| Total raw orders audited | **99,441** distinct orders |
+| Delivered-order revenue, October 2017 | **BRL 751,140.27** |
+| Delivered-order revenue, November 2017 | **BRL 1,153,528.05** |
+| Month-over-month revenue growth | **+53.6%** |
+| Unique-customer growth | **+62.6%** |
+| Orders per customer | **Approximately unchanged** |
+| Average order value (AOV) | **−5.7%** |
+| Share of revenue increase from SP, RJ and MG | **Approximately 68%** |
+| November 2017 new customers studied in SP/RJ/MG/RS | **5,074** |
+| New customers who purchased from any of the five leading categories | **2,025 (39.91%)** |
+| AOV: top-five category buyers vs other new buyers | **BRL 143.96 vs BRL 157.66** |
 
-Month is defined at the **YYYY-MM** level to preserve chronology across multiple years.
+**Bottom line:** November's observed growth was primarily **customer- and order-volume-driven**, not driven by higher AOV or markedly higher orders per customer. Category demand increased broadly, with substantial growth concentrated in large customer markets. These are **descriptive findings**, not causal explanations of the increase.
 
-### Initial observations
+## Business Questions Answered
 
-From the first monthly trend analysis:
-
-- Revenue, unique customers, and order volume generally increase from 2017 onward
-- AOV fluctuates within a narrower range than transaction volume
-- This suggests that growth is more strongly associated with **volume expansion** than sustained AOV growth
-- Very early 2016 months contain extremely small samples and should not be interpreted as representative business periods
-- Review scores are generally around 4+, with a weaker period around late 2017 / early 2018 followed by recovery
-
-These are descriptive observations only; further analysis is required before assigning causes.
+1. Was monthly revenue growth driven by more customers, more purchases per customer, or higher order value?
+2. Which product categories and states contributed most to the October–November change?
+3. Were November buyers in key states mostly new or returning within the observed purchase history?
+4. What proportion of new buyers purchased from the five leading product categories?
+5. How did order value differ between new buyers of those categories and other new buyers?
 
 ---
 
-## 5. October → November 2017 Revenue Growth Decomposition
+## Data Sources and Analytical Design
 
-A major investigation focused on the sharp increase in delivered-order revenue from **October 2017 to November 2017**.
+Source tables used in the analytical workflow:
 
-The decomposition used:
+- **Orders:** `order_id`, `customer_id`, order status, timestamps
+- **Customers:** `customer_id`, `customer_unique_id`, customer state
+- **Payments:** `order_id`, `payment_value`
+- **Reviews:** `order_id`, review score
+- **Order items:** `order_id`, item identifier, product, item price and freight
+- **Products and category translation:** product/category relationships and English labels
+
+### Critical join keys and data grain
+
+| ID / measure | Correct interpretation |
+|---|---|
+| `order_id` | Identifies one marketplace order |
+| `customer_id` | Order-specific customer ID; joins orders to customers |
+| `customer_unique_id` | Persistent customer identity; used for unique customers and previous-order history |
+| `order_revenue` | Sum of recorded `payment_value` at **one row per order** |
+| `price` | **Item-level** product price, used for category/item revenue analysis |
+
+To avoid double counting, payments and reviews were **aggregated by `order_id` before joining** to the orders table. Joining full payment-based order revenue directly onto multiple order-item rows would overstate revenue.
+
+The primary executive KPI population contains **delivered orders only**. Analysis periods use **year-month**, not month number alone. Category analysis uses item price, which is a different definition from order-level payment revenue; the two measures are **not directly interchangeable**.
+
+### Data-quality audit
+
+- **99,441** rows and **99,441 distinct order IDs**; no duplicated order IDs in the base orders table.
+- **8** delivered orders lacked customer-delivery timestamps.
+- **23** orders had a recorded customer-delivery timestamp before the carrier handoff timestamp.
+- After constructing the order-level joins: **99,441 orders retained**, with no duplicate order IDs and no missing `customer_unique_id`.
+- One delivered order lacked a recorded payment amount. **BRL 143.46** was reconstructed from three items at BRL 44.99 plus BRL 2.83 freight each. This is explicitly **imputed, not observed payment revenue**.
+- **768** orders had no review score after review aggregation; missing review scores were preserved as missing rather than replaced with zero.
+
+Delivery timestamp anomalies were flagged for delivery-related analyses rather than indiscriminately removing otherwise usable orders.
+
+---
+
+## Analysis 1 — October to November 2017 Revenue Decomposition
+
+Using:
 
 ```text
-Revenue
-≈
-Unique Customers
-×
-Orders per Customer
-×
-Average Order Value
+Revenue = Unique customers × Orders per customer × Average order value
 ```
 
-### KPI Comparison
-
-| Metric | Oct 2017 | Nov 2017 | Approx. Change |
+| KPI (delivered orders) | October 2017 | November 2017 | Change |
 |---|---:|---:|---:|
-| Revenue | BRL 751,140 | BRL 1,153,528 | **+53.6%** |
+| Order revenue (BRL) | 751,140.27 | 1,153,528.05 | **+53.6%** |
 | Unique customers | 4,417 | 7,183 | **+62.6%** |
 | Orders | 4,478 | 7,289 | **+62.8%** |
-| Orders per customer | 1.014 | 1.015 | **~flat** |
-| Average order value | BRL 167.74 | BRL 158.26 | **-5.7%** |
+| Orders/customer | 1.0138 | 1.0148 | ~flat |
+| AOV (BRL) | 167.74 | 158.26 | **−5.7%** |
 
-### Main Finding
+**Interpretation:** More distinct customers and orders coincided with the revenue increase, while order frequency was essentially flat and AOV fell. Supporting item-level analysis also showed a lower average item price (approximately BRL 122.80 to BRL 116.55) and broadly stable items per order.
 
-> **The November revenue surge was primarily volume-driven.**
+Core growth metrics were independently reproduced with **SQL conditional aggregation** as well as Pandas.
 
-Revenue increased because many more customers placed many more orders. It was **not** driven by higher purchase frequency or higher order value:
+## Analysis 2 — Product-Category Contribution
 
-- orders per customer remained nearly unchanged
-- AOV declined
-- item-level analysis also showed lower average item prices and no meaningful increase in basket size
+Item revenue by translated product category was compared at a **year-month × category** grain.
 
-The same October–November decomposition was reproduced in **SQL** to validate the business metrics independently from the Pandas workflow.
-
----
-
-## 6. Product-Category Contribution Analysis
-
-To understand whether one product area explained the November increase, order-item data was joined with products and category translations.
-
-The analysis used a `month × product category` grain and compared **absolute item-revenue change** rather than percentage growth alone.
-
-### Largest Category-Level Increases
-
-| Product category | Oct item revenue | Nov item revenue | Increase |
+| Category | Oct item revenue (BRL) | Nov item revenue (BRL) | Increase (BRL) |
 |---|---:|---:|---:|
-| `bed_bath_table` | 46,007.70 | 87,957.63 | **+41,949.93** |
-| `health_beauty` | 40,698.99 | 78,274.40 | **+37,575.41** |
-| `furniture_decor` | 30,009.74 | 62,091.27 | **+32,081.53** |
-| `watches_gifts` | 64,874.63 | 95,292.34 | **+30,417.71** |
-| `toys` | 33,324.42 | 62,611.26 | **+29,286.84** |
-| `computers_accessories` | 42,009.38 | 69,676.32 | **+27,666.94** |
+| `bed_bath_table` | 46,007.70 | 87,957.63 | **41,949.93** |
+| `health_beauty` | 40,698.99 | 78,274.40 | **37,575.41** |
+| `furniture_decor` | 30,009.74 | 62,091.27 | **32,081.53** |
+| `watches_gifts` | 64,874.63 | 95,292.34 | **30,417.71** |
+| `toys` | 33,324.42 | 62,611.26 | **29,286.84** |
+| `computers_accessories` | 42,009.38 | 69,676.32 | **27,666.94** |
 
-### Interpretation
+**Interpretation:** The increase was spread across several categories rather than attributable to a single category. This table uses **sum of item prices**, not total order payment value.
 
-The November increase was **broad-based across multiple major product categories** rather than being explained by a single category.
+## Analysis 3 — Geographic Contribution
 
-`bed_bath_table` was the largest observed category contributor, but this is treated as a **descriptive contribution**, not proof that the category caused the surge.
+The geographic analysis used **order-level payment revenue** associated with each customer's state.
 
----
-
-## 7. Geographic Contribution Analysis
-
-Revenue was compared across Brazilian customer states using the **order-level table** so that order revenue was not duplicated across multiple item rows.
-
-### Largest State-Level Revenue Increases
-
-| State | Oct revenue | Nov revenue | Increase |
+| State | Oct order revenue (BRL) | Nov order revenue (BRL) | Increase (BRL) |
 |---|---:|---:|---:|
-| SP | 249,924.09 | 401,027.72 | **+151,103.63** |
-| RJ | 110,577.92 | 172,234.57 | **+61,656.65** |
-| MG | 93,049.17 | 154,131.98 | **+61,082.81** |
-| RS | 43,173.06 | 67,262.74 | **+24,089.68** |
-| SC | 24,773.77 | 44,269.59 | **+19,495.82** |
-| PR | 37,404.60 | 54,237.96 | **+16,833.36** |
+| SP | 249,924.09 | 401,027.72 | **151,103.63** |
+| RJ | 110,577.92 | 172,234.57 | **61,656.65** |
+| MG | 93,049.17 | 154,131.98 | **61,082.81** |
+| RS | 43,173.06 | 67,262.74 | **24,089.68** |
+| SC | 24,773.77 | 44,269.59 | **19,495.82** |
+| PR | 37,404.60 | 54,237.96 | **16,833.36** |
 
-The top three states — **SP, RJ, and MG** — contributed roughly **68% of the total October-to-November revenue increase**.
+**SP, RJ and MG contributed approximately 68%** of the October–November total revenue increase, identifying large regional markets for further analysis. Their contribution does not by itself establish why sales increased.
 
-### Interpretation
+## Analysis 4 — New vs Returning Buyers
 
-> The November surge was not evenly distributed geographically. A large share of the increase came from Brazil's major customer markets, especially São Paulo, Rio de Janeiro, and Minas Gerais.
+A customer is **new within the observed dataset** if they had **no earlier delivered order** before the relevant month. A returning customer has at least one earlier delivered order in the available history. This definition does not guarantee first purchase ever.
 
----
+For November 2017:
 
-## 8. New vs Returning Customer Analysis
-
-The next step was to determine whether the volume increase in major states was driven by existing customers or by new customer inflow.
-
-A customer was classified as:
-
-- **New** — no delivered order before November 2017 in the observed dataset
-- **Returning** — at least one delivered order before November 2017
-
-> "New" therefore means **new within the observed Olist history**, not necessarily first-time customer ever outside the dataset.
-
-### November 2017 Customer Mix
-
-| State | New customers | Returning customers | New customer % |
+| State | New customers | Returning customers | Share new |
 |---|---:|---:|---:|
-| MG | 893 | 21 | **97.7%** |
-| RJ | 979 | 17 | **98.3%** |
-| RS | 399 | 6 | **98.5%** |
-| SP | 2,803 | 41 | **98.6%** |
+| SP | 2,803 | 41 | 98.56% |
+| RJ | 979 | 17 | 98.29% |
+| MG | 893 | 21 | 97.70% |
+| RS | 399 | 6 | 98.52% |
+| **Total** | **5,074** | **85** | **98.35%** |
 
-### Main Finding
+The November four-state order-level subset contained **5,242 distinct delivered orders**, including orders from both groups.
 
-> **The November volume surge in these major states was overwhelmingly associated with customers who had no prior delivered order in the observed dataset.**
+**Interpretation:** New-within-observed-history buyers overwhelmingly dominated the November customer mix in these states. This supports a new-customer inflow explanation without implying that campaign-driven acquisition was proven.
 
-This strengthens the overall growth story:
+## Analysis 5 — Category Reach Among New Buyers
 
-```text
-November revenue surge
-→ many more customers
-→ many more orders
-→ order frequency ~flat
-→ AOV lower
-→ broad category growth
-→ concentrated in major states
-→ ~98% of Nov customers in selected states classified as new within observed history
-```
+The five categories with the most distinct new buyers in November 2017 (SP/RJ/MG/RS) were:
 
-The evidence therefore points toward **new-customer inflow / acquisition** as the main descriptive driver of November's growth, rather than higher spending by existing customers.
-
----
-
-## 9. Day 18 — New-Customer Category Analysis
-
-The next investigation examines the product categories purchased by **November 2017 new customers** in **SP, RJ, MG, and RS**.
-
-The population is limited to delivered orders. A "new" customer has no earlier delivered order in the available Olist history; this does **not** establish that they had never purchased on the marketplace outside the observed dataset.
-
-### Data-grain validation
-
-- Starting November four-state dataset: **5,242 rows = 5,242 distinct orders** (one row per order, including new and returning buyers).
-- After filtering to November new buyers and joining item/product/category records: **5,982 item-level rows**.
-- Distinct November new customers across the four states: **5,074**.
-- Item-level rows were used for item and category analysis; **order-level rows** were used when summing order revenue.
-
-### Categories with the widest reach among new customers
-
-| Category | Distinct new customers | Orders | Items sold | Item revenue (BRL) |
+| Category | Distinct new buyers | Orders | Items sold | Item revenue (BRL) |
 |---|---:|---:|---:|---:|
 | `bed_bath_table` | 610 | 621 | 735 | 68,343.26 |
 | `furniture_decor` | 388 | 395 | 555 | 43,879.82 |
@@ -371,308 +164,78 @@ The population is limited to delivered orders. A "new" customer has no earlier d
 | `health_beauty` | 336 | 340 | 373 | 51,087.67 |
 | `toys` | 335 | 336 | 375 | 46,704.16 |
 
-**Important:** Customers can appear in multiple category-specific counts. Summing distinct-customer counts across categories would double-count cross-category purchasers.
+A buyer can belong to more than one category. To compute true **combined reach**, the analysis counted **distinct customer IDs across the union** of the five categories instead of adding category-level counts.
 
-### Overlap-adjusted top-five reach
-
-Customers who purchased **at least one item** in any of these five categories were counted **once**, irrespective of how many categories they bought from.
-
-| Metric | October 2017 | November 2017 |
+| Fixed five-category reach | October 2017 | November 2017 |
 |---|---:|---:|
-| Total new customers (selected four states) | 3,052 | 5,074 |
-| New customers who bought from any top-five category | 1,176 | 2,025 |
-| Top-five customer reach | **38.53%** | **39.91%** |
+| New customers in SP/RJ/MG/RS | 3,052 | 5,074 |
+| Buyers who bought ≥1 item in those categories | 1,176 | 2,025 |
+| Share of new buyers reached | **38.53%** | **39.91%** |
 
-- New customers grew by approximately **66.3%**.
-- New customers purchasing from any of the selected top-five categories grew by approximately **72.2%**.
-- Top-five reach rose by approximately **1.38 percentage points**.
+- New-customer count: **+66.3%**
+- Buyers of the selected categories: **+72.2%**
+- Combined category reach: **+1.38 percentage points**
 
-The same five categories were used for both months. October customers were classified against **all available delivered-order history before October 1**, and November customers against history before November 1.
+SQL validation used `COUNT(DISTINCT CASE WHEN ... THEN customer_unique_id END)` and a zero-safe denominator.
 
-**Interpretation:** These five categories gained a modest share of new-customer purchases, while the influx remained broad-based. Popularity and reach are **associations**, not evidence that the categories *caused* acquisition or that increasing marketing spend would be profitable.
+## Analysis 6 — Customer Segments and AOV
 
-The November reach calculation was also reproduced as a **SQL conditional distinct-count query**, using `COUNT(DISTINCT CASE WHEN ... THEN customer_unique_id END)` and a zero-safe denominator.
+November new buyers in SP/RJ/MG/RS were assigned to mutually exclusive groups:
 
----
+- **Top-five buyer:** purchased at least one item in the selected five categories, possibly alongside other items.
+- **Other buyer:** did not purchase a recorded item from the selected five categories.
 
-## 10. Day 18 — Customer Segmentation and AOV Comparison
+Customer labels were deduplicated to **one row per `customer_unique_id`** and then joined to the **order-level** dataset, so complete order payments were not accidentally multiplied by item count.
 
-For November new customers, two **mutually exclusive, exhaustive** segments were defined:
-
-- **Top-five buyer:** purchased at least one item in any of the five selected categories.
-- **Other buyer:** did not purchase an item in those categories.
-
-A customer purchasing both top-five and non-top-five products is assigned to **Top-five buyer**, only once.
-
-Customer segmentation was deduplicated to **one row per `customer_unique_id`**:
-
-| Segment | Distinct customers |
-|---|---:|
-| Top-five buyer | 2,025 |
-| Other buyer | 3,049 |
-| **Total** | **5,074** |
-
-To calculate order-level KPIs, these customer labels were joined back to the **one-row-per-order** dataset; complete order revenue was assigned to the customer's segment instead of summing repeated payments on item-level rows.
-
-### November new-customer segment performance
-
-| Metric | Top-five buyers | Other buyers |
+| KPI | Top-five buyers | Other buyers |
 |---|---:|---:|
-| Distinct customers | 2,025 | 3,049 |
-| Distinct orders | 2,080 | 3,073 |
-| Total order revenue (BRL) | 299,439.32 | 484,474.40 |
-| Average order value (BRL) | **143.96** | **157.66** |
+| Unique new buyers | 2,025 | 3,049 |
+| Orders | 2,080 | 3,073 |
+| Order revenue (BRL) | 299,439.32 | 484,474.40 |
+| AOV (BRL) | **143.96** | **157.66** |
 
-Top-five buyers had an AOV approximately **BRL 13.69 (8.69%) lower** than other buyers.
+**Observed difference:** Top-five buyers' AOV was approximately **BRL 13.69 (8.69%) lower**.
 
-**Interpretation:** AOV reflects observed revenue per order, **not customer profitability or lifetime value**. The Olist data does not provide complete acquisition spend, manufacturing costs, or actual logistics expense; recorded freight amounts are not interchangeable with fulfillment cost. The observed AOV difference alone is not sufficient to recommend reducing marketing for the top-five categories.
-
-For a robust reproduction, the customer-to-order merge should be validated with `validate='many_to_one'`, no increase in order rows, and no missing segment labels. Missing or untranslated product categories should also be audited rather than automatically interpreted as purchases outside the top five.
+**Interpretation:** AOV is revenue per order, **not margin or lifetime value**. Lower AOV alone is insufficient justification for reducing marketing investment; customer acquisition costs, profit margins and later purchase behavior would be needed. Untranslated/missing category labels are a potential classification limitation that should be audited before treating every "Other buyer" as a confirmed non-top-five purchaser.
 
 ---
 
-## Next Analysis — 90-Day Repeat-Purchase Retention
+## Business Recommendations
 
-**Not yet completed.** The next step is to measure whether November's top-five buyers are more likely to make another delivered purchase than other buyers.
+These are **investigation priorities**, not established causal findings:
 
-Planned approach:
+1. **Investigate acquisition and demand drivers:** Break down November growth by traffic, campaigns, promotions and channels *if such data become available*, rather than attributing the growth to marketing based on transaction history alone.
+2. **Prioritize market-specific diagnosis:** Start with SP, RJ and MG because of their large observed contributions; examine the operational and marketing contexts before reallocating budget.
+3. **Review category strategy using economics, not just reach:** Pair product-category reach and revenue with contribution margin, fulfillment costs and acquisition costs before changing promotional spend.
+4. **Evaluate subsequent customer value:** A future 90-day repeat-purchase analysis could help test whether November's new buyers formed sustainable demand, but this analysis **was not performed in the present project**.
 
-1. Start with the full **order-level delivered-order history**, not November data alone.
-2. Identify each cohort customer's first delivered order, using `customer_unique_id` and purchase timestamp; confirm the cohort's first purchase occurred in November 2017.
-3. Identify a later **distinct delivered order** from the same customer within **90 days** of their first purchase.
-4. Compare **unique customers retained / unique customers in cohort** for top-five buyers and other buyers.
-5. Examine sample size, differences in retention, and appropriate statistical uncertainty before drawing conclusions.
+## Methods and Quality Controls
 
-This analysis will add **repeat-purchase behavior** to the existing customer-acquisition and AOV findings, helping evaluate potential long-term value without claiming it directly measures profitability.
+- Audited missing values, duplicate keys, order status and timestamp anomalies.
+- Defined **order**, **item**, **customer**, and **category-customer** grains before aggregation.
+- Used `customer_id` for order/customer joins and `customer_unique_id` for customer-history classification.
+- Aggregated one-to-many payment/review records before joining to preserve order-level uniqueness.
+- Distinguished **payment-based order revenue** from **item-price category revenue**.
+- Checked segment populations and used distinct-count logic for overlapping categories.
+- Reproduced selected Pandas metrics in SQL.
+- Distinguished observed associations from causes and documented missing-data limitations.
 
----
+## Reproducibility
 
-# Planned Analysis
+1. Download the [Olist Brazilian E-Commerce dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) and its relational CSV tables.
+2. Place the downloaded files in a local data directory matching the paths in the author's notebook.
+3. Open and run the author's analysis notebook **once uploaded to this repository** in a Python environment with Pandas and the notebook's SQL dependencies installed.
+4. Check the resulting KPI and segment totals against the tables in this README.
 
-The remaining project will expand into the following areas.
-
-## SQL Analysis
-
-Completed / in progress:
-
-- Monthly KPI extraction
-- October–November revenue decomposition
-- Customer-level and business KPI validation
-- Conditional distinct-count SQL for overlap-adjusted top-five customer reach
-
-Planned:
-
-- Customer retention
-- Repeat-purchase behavior
-- Product/category performance
-- Seller performance
-- Window functions and ranking
-- Revenue contribution analysis
-- Cohort analysis
-
----
-
-## Python / Pandas Analysis
-
-Completed / in progress:
-
-- Data-quality audit
-- Order-level dataset construction
-- Monthly KPI analysis
-- Revenue-driver decomposition
-- Product-category contribution analysis
-- Geographic contribution analysis
-- New vs returning customer analysis
-
-Planned:
-
-- New-customer product/category analysis (completed for the top-five categories)
-- Customer segmentation and AOV comparison (completed)
-- Customer retention and cohort analysis (next)
-- Delivery-performance analysis
-- Review-score drivers
-- Outlier analysis
-- Feature engineering
-
----
-
-## Statistical Analysis
-
-The project will include statistical methods where they answer a meaningful business question, such as:
-
-- Hypothesis testing
-- Confidence intervals
-- Effect-size interpretation
-- Statistical vs practical significance
-- Comparing customer/order groups
-- Association between delivery performance and review outcomes
-
-The goal is not to apply statistical tests unnecessarily, but to use them to support business decisions.
-
----
-
-## Data Science Component
-
-A later stage of the project will include a data science component based on the strongest business use case identified during EDA.
-
-Potential directions include:
-
-- Customer segmentation
-- Review-score / customer-experience prediction
-- Delivery-risk analysis
-- Customer-value modeling
-
-The final modeling task will be selected based on business usefulness and data quality rather than simply adding machine learning for its own sake.
-
----
-
-## Dashboard
-
-A final **Power BI or Tableau executive dashboard** will summarize the most important findings.
-
-Planned dashboard areas include:
-
-- Revenue and order trends
-- Customer growth
-- Average order value
-- Product/category performance
-- Geographic performance
-- Delivery performance
-- Customer review metrics
-- Business drill-down filters
-
----
-
-## Final Deliverables
-
-By the end of the project, this repository is expected to contain:
-
-```text
-E-Commerce-Data-Analysis-Personal-Project/
-│
-├── README.md
-├── requirements.txt
-│
-├── data/
-│   └── README.md
-│
-├── notebooks/
-│   ├── 01_data_audit_and_kpi_build.ipynb
-│   ├── 02_exploratory_analysis.ipynb
-│   ├── 03_statistical_analysis.ipynb
-│   └── 04_modeling.ipynb
-│
-├── sql/
-│   ├── data_quality.sql
-│   ├── revenue_analysis.sql
-│   ├── customer_analysis.sql
-│   └── retention_analysis.sql
-│
-├── dashboard/
-│
-├── report/
-│
-└── images/
-```
-
-The repository structure will evolve as the project develops.
-
----
-
-# Technologies
-
-### Languages
-- Python
-- SQL
-
-### Python Libraries
-- Pandas
-- NumPy
-- Matplotlib
-- scikit-learn *(planned for the modeling stage)*
-
-### Analytics & BI
-- Power BI / Tableau
-
-### Development
-- Jupyter Notebook
-- Git
-- GitHub
-
----
-
-## How to Run
-
-1. Clone the repository.
-
-```bash
-git clone <YOUR_REPOSITORY_URL>
-cd <YOUR_REPOSITORY_FOLDER>
-```
-
-2. Install the required Python packages.
-
-```bash
-pip install -r requirements.txt
-```
-
-3. Download the Brazilian Olist E-Commerce Dataset.
-
-4. Place the raw CSV files in the expected local data directory.
-
-5. Run the notebooks in numerical order.
-
----
-
-## Analytical Principles Used in This Project
-
-Throughout the project, several principles are followed:
-
-- Define the **grain** before joining tables
-- Match each metric to the correct grain before aggregating
-- Validate row counts and keys after every important join
-- Use `customer_id` for order-to-customer joins and `customer_unique_id` for customer-history analysis
-- Investigate missing values before imputing or deleting them
-- Separate descriptive contribution from causal conclusions
-- Check denominators before interpreting averages or rates
-- Distinguish absolute contribution from percentage growth
-- Distinguish statistical significance from practical business significance
-- Translate analytical findings into business recommendations
-- Document assumptions and data-quality decisions
-
----
+**Repository note:** The author will upload and organize the original notebook independently. This README does not claim a notebook, requirements file, dashboard, SQL scripts, or trained model already exists here.
 
 ## Project Status
 
-**In progress**
+**Completed for the defined exploratory and business analytics scope (October 2026).**
 
-Current milestone:
-
-```text
-Data understanding             ✅
-Data quality audit             ✅
-Order-level dataset            ✅
-Review integration             ✅
-Monthly KPI table              ✅
-Revenue decomposition          ✅
-Product-category analysis      ✅
-Geographic analysis            ✅
-New vs returning analysis      ✅
-New-customer category reach    ✅
-Customer segment AOV           ✅
-SQL business analysis          🔄
-90-day repeat retention        ⏳
-Customer / cohort analysis     🔄
-Statistical analysis           ⏳
-Data science modeling          ⏳
-Dashboard                      ⏳
-Executive report               ⏳
-```
+The documented analyses and business interpretation are complete. The author is handling the final code-notebook upload separately. No dashboard, predictive model, formal statistical significance test, or 90-day retention rate is claimed.
 
 ---
 
-## Author
-
 **Xing Liu (Luke)**  
-Master of Engineering — Data Analytics & Machine Learning  
-University of Toronto
+University of Toronto — Master of Engineering, Data Analytics & Machine Learning
