@@ -3,7 +3,6 @@
 **Independent data analytics portfolio project | October 2026**  
 **Tools:** Python, Pandas, SQL, exploratory data analysis, KPI decomposition, customer segmentation  
 **Dataset:** [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)  
-**Analysis notebook:** [Olist_Ecommerce_Revenue_Customer_Analytics_Final.ipynb](./Olist_Ecommerce_Revenue_Customer_Analytics_Final.ipynb)
 
 ## Overview
 
