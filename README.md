@@ -2,7 +2,8 @@
 
 **Independent data analytics portfolio project | October 2026**  
 **Tools:** Python, Pandas, SQL, exploratory data analysis, KPI decomposition, customer segmentation  
-**Dataset:** [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
+**Dataset:** [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)  
+**Analysis notebook:** [Olist_Ecommerce_Revenue_Customer_Analytics_Final.ipynb](./Olist_Ecommerce_Revenue_Customer_Analytics_Final.ipynb)
 
 ## Overview
 
@@ -14,7 +15,7 @@ This completed **exploratory and business analytics case study** investigates re
 
 **Not in scope:** A Power BI/Tableau dashboard, 90-day repeat-purchase retention, causal campaign attribution, hypothesis testing, or predictive machine learning. These were considered but **were not completed and are not claimed as deliverables**.
 
-The project author is organizing and uploading the original analysis notebook separately. This README documents the completed analytical findings and assumptions, but does not imply that a runnable notebook is already present in the repository.
+The repository includes a **consolidated reproduction notebook** documenting the analytical workflow. Its narrative summarizes earlier observed results; running the notebook with the Olist CSV files is necessary to independently verify those outputs. The notebook is not represented as the original working file.
 
 ---
 
@@ -222,18 +223,21 @@ These are **investigation priorities**, not established causal findings:
 
 ## Reproducibility
 
-1. Download the [Olist Brazilian E-Commerce dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) and its relational CSV tables.
-2. Place the downloaded files in a local data directory matching the paths in the author's notebook.
-3. Open and run the author's analysis notebook **once uploaded to this repository** in a Python environment with Pandas and the notebook's SQL dependencies installed.
-4. Check the resulting KPI and segment totals against the tables in this README.
+The full analysis workflow is available in **[Olist_Ecommerce_Revenue_Customer_Analytics_Final.ipynb](./Olist_Ecommerce_Revenue_Customer_Analytics_Final.ipynb)**. The notebook uses Python, Pandas, NumPy, and an optional SQL cross-check with DuckDB. It was assembled as a reproducible account of earlier analyses; some recorded figures in the narrative should be checked against a fresh run on the source data.
 
-**Repository note:** The author will upload and organize the original notebook independently. This README does not claim a notebook, requirements file, dashboard, SQL scripts, or trained model already exists here.
+1. Download the [Brazilian Olist E-Commerce dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) and extract its CSV files.
+2. Clone the repository and install the required libraries (for example, `pip install pandas numpy duckdb jupyter`).
+3. **Match the CSV location to the code.** The current first code cell sets `DATA_DIR = Path('.')`, so it looks for CSV files **in the notebook's working directory** (normally the repository root). The notebook's introductory markdown alternatively suggests `data/raw/`; if you place files there, change that code line to `DATA_DIR = Path('data/raw')` before running.
+4. Open `Olist_Ecommerce_Revenue_Customer_Analytics_Final.ipynb` and run its cells in order.
+5. Reconcile reproduced metrics with the executive summary and data-quality notes in this README. Data files are not committed here.
+
+**Repository contents:** The consolidated notebook and this README are available. No separate dashboard, trained model, or completed 90-day retention analysis is included.
 
 ## Project Status
 
 **Completed for the defined exploratory and business analytics scope (October 2026).**
 
-The documented analyses and business interpretation are complete. The author is handling the final code-notebook upload separately. No dashboard, predictive model, formal statistical significance test, or 90-day retention rate is claimed.
+The documented analyses and business interpretation are complete for this case-study scope, and the consolidated notebook is available above. Its recorded analytical results should be verified through a fresh run using the downloaded Olist data. No dashboard, predictive model, formal statistical significance test, or 90-day retention rate is claimed.
 
 ---
 
